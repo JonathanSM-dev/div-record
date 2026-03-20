@@ -2,6 +2,12 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.5.0
+
+- Adicionado modo lote para capturar varios elementos em sequencia.
+- A selecao pode continuar ativa apos cada captura ate o usuario pressionar `Esc`.
+- Melhorado o fluxo para evitar novos cliques enquanto uma captura ainda esta em andamento.
+
 ## 1.4.0
 
 - Adicionada opcao para ocultar elementos `fixed` e `sticky` durante a captura.

@@ -31,12 +31,14 @@ const state = {
     copyToClipboard: false,
     filenamePrefix: "div-record",
     saveAs: true,
-    hideFloatingUi: true
+    hideFloatingUi: true,
+    batchMode: false
   },
   hiddenFloatingElements: [],
   currentPath: [],
   pathIndex: 0,
-  lastPointerTarget: null
+  lastPointerTarget: null,
+  captureInProgress: false
 };
 
 function ensureOverlay() {
@@ -281,10 +283,14 @@ function startSelection(options = {}) {
       ? options.filenamePrefix.trim()
       : "div-record",
     saveAs: "saveAs" in options ? Boolean(options.saveAs) : true,
-    hideFloatingUi: "hideFloatingUi" in options ? Boolean(options.hideFloatingUi) : true
+    hideFloatingUi: "hideFloatingUi" in options ? Boolean(options.hideFloatingUi) : true,
+    batchMode: "batchMode" in options ? Boolean(options.batchMode) : false
   };
 
-  showToast("Selecao ativa. Use roda do mouse ou setas para mudar o container.", false, 3200);
+  const batchHint = state.captureOptions.batchMode
+    ? " Modo lote ativo: clique em varios elementos e pressione Esc para sair."
+    : "";
+  showToast(`Selecao ativa. Use roda do mouse ou setas para mudar o container.${batchHint}`, false, 3800);
 }
 
 function stopSelection() {
@@ -297,6 +303,12 @@ function stopSelection() {
 
 function onMouseMove(event) {
   if (!state.selectionActive) {
+    return;
+  }
+
+  if (state.captureInProgress) {
+    event.preventDefault();
+    event.stopPropagation();
     return;
   }
 
@@ -332,6 +344,7 @@ function onClick(event) {
   }
 
   state.selectionActive = false;
+  state.captureInProgress = true;
   updateOverlay(element);
   clearToast();
 
@@ -342,15 +355,18 @@ function onClick(event) {
       copyToClipboard: state.captureOptions.copyToClipboard,
       filenamePrefix: state.captureOptions.filenamePrefix,
       saveAs: state.captureOptions.saveAs,
-      hideFloatingUi: state.captureOptions.hideFloatingUi
+      hideFloatingUi: state.captureOptions.hideFloatingUi,
+      batchMode: state.captureOptions.batchMode
     }
   }, (response) => {
     if (chrome.runtime.lastError) {
+      state.captureInProgress = false;
       showToast(chrome.runtime.lastError.message, true);
       return;
     }
 
     if (!response?.ok) {
+      state.captureInProgress = false;
       showToast(response?.error || "Falha ao capturar o elemento.", true);
     }
   });
@@ -535,6 +551,7 @@ function restoreAfterCapture() {
   }
 
   state.captureSession = null;
+  state.captureInProgress = false;
   hideOverlay();
   setOverlayVisibility(true);
 }
@@ -593,10 +610,19 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message?.type === "CAPTURE_COMPLETE") {
     restoreAfterCapture();
-    if (message.payload?.copied) {
-      showToast("Print salvo e copiado para a area de transferencia.");
+    if (state.captureOptions.batchMode) {
+      state.selectionActive = true;
+      if (message.payload?.copied) {
+        showToast("Print salvo e copiado. Continue selecionando ou pressione Esc para sair.", false, 3200);
+      } else {
+        showToast("Print salvo. Continue selecionando ou pressione Esc para sair.", false, 3200);
+      }
     } else {
-      showToast("Print salvo com sucesso.");
+      if (message.payload?.copied) {
+        showToast("Print salvo e copiado para a area de transferencia.");
+      } else {
+        showToast("Print salvo com sucesso.");
+      }
     }
     sendResponse({ ok: true });
     return false;
@@ -604,6 +630,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message?.type === "CAPTURE_FAILED") {
     restoreAfterCapture();
+    if (state.captureOptions.batchMode) {
+      state.selectionActive = true;
+    }
     showToast(message.error || "Erro ao capturar o elemento.", true);
     sendResponse({ ok: true });
     return false;

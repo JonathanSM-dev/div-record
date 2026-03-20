@@ -4,7 +4,8 @@ const DEFAULT_OPTIONS = {
   copyToClipboard: false,
   filenamePrefix: "div-record",
   saveAs: true,
-  hideFloatingUi: true
+  hideFloatingUi: true,
+  batchMode: false
 };
 
 const startButton = document.getElementById("start-selection");
@@ -14,6 +15,7 @@ const copyCheckbox = document.getElementById("copy-to-clipboard");
 const filenamePrefixInput = document.getElementById("filename-prefix");
 const saveAsCheckbox = document.getElementById("save-as");
 const hideFloatingUiCheckbox = document.getElementById("hide-floating-ui");
+const batchModeCheckbox = document.getElementById("batch-mode");
 
 function setStatus(message, isError = false) {
   statusElement.textContent = message;
@@ -37,6 +39,7 @@ async function loadOptions() {
   filenamePrefixInput.value = options.filenamePrefix || DEFAULT_OPTIONS.filenamePrefix;
   saveAsCheckbox.checked = Boolean(options.saveAs);
   hideFloatingUiCheckbox.checked = Boolean(options.hideFloatingUi);
+  batchModeCheckbox.checked = Boolean(options.batchMode);
 }
 
 async function saveOptions() {
@@ -45,7 +48,8 @@ async function saveOptions() {
     copyToClipboard: copyCheckbox.checked,
     filenamePrefix: (filenamePrefixInput.value || DEFAULT_OPTIONS.filenamePrefix).trim() || DEFAULT_OPTIONS.filenamePrefix,
     saveAs: saveAsCheckbox.checked,
-    hideFloatingUi: hideFloatingUiCheckbox.checked
+    hideFloatingUi: hideFloatingUiCheckbox.checked,
+    batchMode: batchModeCheckbox.checked
   };
 
   await chrome.storage.local.set({ [STORAGE_KEY]: options });
@@ -69,6 +73,10 @@ saveAsCheckbox.addEventListener("change", () => {
 });
 
 hideFloatingUiCheckbox.addEventListener("change", () => {
+  saveOptions().catch(() => {});
+});
+
+batchModeCheckbox.addEventListener("change", () => {
   saveOptions().catch(() => {});
 });
 
