@@ -1,4 +1,4 @@
-# DIV Record
+﻿# DIV Record
 
 Extensao de navegador para Chrome/Edge que permite selecionar elementos diretamente na pagina e salvar um print ja recortado, sem precisar editar a imagem depois.
 
@@ -36,9 +36,11 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 
 ## Versionamento e backups
 
+- Fluxo de release: `RELEASE.md`
 - Backup geral inicial: `backups/div-record-backup-20260320-140057.zip`
 - Snapshot versionado da `1.1.0`: `backups/div-record-v1.1.0.zip`
 
 ## Limitacao importante
 
 A API padrao de extensoes captura a area visivel da aba, entao a extensao percorre a pagina em multiplos screenshots quando o elemento e maior que a janela. Ainda podem existir diferencas em sites com cabecalhos fixos, animacoes ou conteudo que muda durante a rolagem.
+

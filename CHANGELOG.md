@@ -1,5 +1,7 @@
 # Changelog
 
+Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
+
 ## 1.2.0
 
 - Adicionado atalho `Alt+Shift+D` para iniciar a selecao sem abrir o popup.
