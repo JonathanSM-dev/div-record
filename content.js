@@ -30,8 +30,10 @@ const state = {
     margin: 8,
     copyToClipboard: false,
     filenamePrefix: "div-record",
-    saveAs: true
+    saveAs: true,
+    hideFloatingUi: true
   },
+  hiddenFloatingElements: [],
   currentPath: [],
   pathIndex: 0,
   lastPointerTarget: null
@@ -139,6 +141,16 @@ function describeElement(element) {
   const classes = Array.from(element.classList).slice(0, 2).join(".");
   const classSuffix = classes ? `.${classes}` : "";
   return `${tag}${id}${classSuffix}`;
+}
+
+function isExtensionUiElement(element) {
+  return Boolean(
+    element?.id === "__div_record_overlay__" ||
+    element?.id === "__div_record_toast__" ||
+    state.overlay === element ||
+    state.label === element ||
+    state.toast === element
+  );
 }
 
 function isSelectableElement(element) {
@@ -268,7 +280,8 @@ function startSelection(options = {}) {
     filenamePrefix: typeof options.filenamePrefix === "string" && options.filenamePrefix.trim()
       ? options.filenamePrefix.trim()
       : "div-record",
-    saveAs: "saveAs" in options ? Boolean(options.saveAs) : true
+    saveAs: "saveAs" in options ? Boolean(options.saveAs) : true,
+    hideFloatingUi: "hideFloatingUi" in options ? Boolean(options.hideFloatingUi) : true
   };
 
   showToast("Selecao ativa. Use roda do mouse ou setas para mudar o container.", false, 3200);
@@ -328,7 +341,8 @@ function onClick(event) {
       selectorLabel: describeElement(element),
       copyToClipboard: state.captureOptions.copyToClipboard,
       filenamePrefix: state.captureOptions.filenamePrefix,
-      saveAs: state.captureOptions.saveAs
+      saveAs: state.captureOptions.saveAs,
+      hideFloatingUi: state.captureOptions.hideFloatingUi
     }
   }, (response) => {
     if (chrome.runtime.lastError) {
@@ -379,6 +393,7 @@ async function prepareCapture() {
 
   clearToast();
   setOverlayVisibility(false);
+  hideFloatingElements(element);
 
   const rect = element.getBoundingClientRect();
   const bounds = getDocumentBounds();
@@ -410,6 +425,68 @@ async function prepareCapture() {
       pathname: window.location.pathname || ""
     }
   };
+}
+
+function restoreHiddenFloatingElements() {
+  for (const item of state.hiddenFloatingElements) {
+    item.element.style.visibility = item.visibility;
+    item.element.style.opacity = item.opacity;
+    item.element.style.pointerEvents = item.pointerEvents;
+  }
+
+  state.hiddenFloatingElements = [];
+}
+
+function hideFloatingElements(selectedElement) {
+  if (!state.captureOptions.hideFloatingUi || !document.body) {
+    return;
+  }
+
+  restoreHiddenFloatingElements();
+
+  const elements = document.body.querySelectorAll("*");
+
+  for (const element of elements) {
+    if (!(element instanceof HTMLElement)) {
+      continue;
+    }
+
+    if (
+      isExtensionUiElement(element) ||
+      element === selectedElement ||
+      selectedElement.contains(element) ||
+      element.contains(selectedElement)
+    ) {
+      continue;
+    }
+
+    const style = window.getComputedStyle(element);
+
+    if (style.position !== "fixed" && style.position !== "sticky") {
+      continue;
+    }
+
+    if (style.visibility === "hidden" || style.display === "none") {
+      continue;
+    }
+
+    const rect = element.getBoundingClientRect();
+
+    if (rect.width < 4 || rect.height < 4) {
+      continue;
+    }
+
+    state.hiddenFloatingElements.push({
+      element,
+      visibility: element.style.visibility,
+      opacity: element.style.opacity,
+      pointerEvents: element.style.pointerEvents
+    });
+
+    element.style.visibility = "hidden";
+    element.style.opacity = "0";
+    element.style.pointerEvents = "none";
+  }
 }
 
 async function scrollForCapture(payload) {
@@ -447,6 +524,8 @@ async function copyToClipboard(dataUrl) {
 }
 
 function restoreAfterCapture() {
+  restoreHiddenFloatingElements();
+
   if (state.captureSession) {
     window.scrollTo({
       left: state.captureSession.scrollX,

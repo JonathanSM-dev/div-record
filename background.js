@@ -7,7 +7,8 @@ const DEFAULT_OPTIONS = {
   margin: 8,
   copyToClipboard: false,
   filenamePrefix: "div-record",
-  saveAs: true
+  saveAs: true,
+  hideFloatingUi: true
 };
 const CAPTURE_MIN_INTERVAL_MS = 450;
 const CAPTURE_RETRY_DELAYS_MS = [800, 1200, 1800, 2500];

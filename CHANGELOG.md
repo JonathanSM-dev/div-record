@@ -2,6 +2,12 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.4.0
+
+- Adicionada opcao para ocultar elementos `fixed` e `sticky` durante a captura.
+- Elementos flutuantes escondidos sao restaurados automaticamente ao final do processo.
+- Melhorada a robustez em paginas com headers, chats e barras persistentes.
+
 ## 1.3.0
 
 - Adicionado prefixo configuravel para o nome do arquivo.
