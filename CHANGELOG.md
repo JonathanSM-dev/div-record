@@ -2,6 +2,11 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.6.0
+
+- Adicionado ajuste rapido de margem pelo teclado durante a selecao com `+` e `-`.
+- O overlay agora mostra dimensoes do elemento e margem atual para facilitar o ajuste fino.
+
 ## 1.5.1
 
 - Adicionado contador visual para a sessao de capturas em modo lote.

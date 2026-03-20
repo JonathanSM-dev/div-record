@@ -18,6 +18,9 @@ const SELECTABLE_SELECTOR = [
   "canvas",
   "svg"
 ].join(",");
+const STORAGE_KEY = "divRecordOptions";
+const MARGIN_STEP = 8;
+const MAX_MARGIN = 64;
 
 const state = {
   selectionActive: false,
@@ -204,11 +207,52 @@ function updateOverlay(element) {
   const hierarchyLabel = state.currentPath.length > 1
     ? ` ${state.pathIndex + 1}/${state.currentPath.length}`
     : "";
+  const width = Math.round(rect.width);
+  const height = Math.round(rect.height);
+  const margin = Math.max(0, Number(state.captureOptions.margin) || 0);
 
-  state.label.textContent = `Capturar ${describeElement(element)}${hierarchyLabel}`;
+  state.label.textContent = `Capturar ${describeElement(element)}${hierarchyLabel} ${width}x${height} m:${margin}`;
   state.label.style.opacity = "1";
   state.label.style.left = `${Math.max(8, rect.left)}px`;
   state.label.style.top = `${Math.max(8, rect.top - 34)}px`;
+}
+
+async function persistCaptureOptions() {
+  try {
+    const stored = await chrome.storage.local.get(STORAGE_KEY);
+    const mergedOptions = {
+      ...(stored[STORAGE_KEY] || {}),
+      ...state.captureOptions
+    };
+
+    await chrome.storage.local.set({
+      [STORAGE_KEY]: mergedOptions
+    });
+  } catch (_error) {
+    // Non-blocking: selection should keep working even if persistence fails.
+  }
+}
+
+function adjustMargin(delta) {
+  const nextMargin = Math.max(
+    0,
+    Math.min(MAX_MARGIN, (Number(state.captureOptions.margin) || 0) + delta)
+  );
+
+  if (nextMargin === state.captureOptions.margin) {
+    return;
+  }
+
+  state.captureOptions.margin = nextMargin;
+  persistCaptureOptions().catch(() => {});
+
+  const element = getCurrentElement();
+
+  if (element) {
+    updateOverlay(element);
+  }
+
+  showToast(`Margem ajustada para ${nextMargin}px.`, false, 1400);
 }
 
 function syncHoveredPath(target) {
@@ -395,6 +439,18 @@ function onKeyDown(event) {
   if (event.key === "ArrowDown" || event.key === "ArrowRight") {
     event.preventDefault();
     moveSelectionLevel(-1);
+    return;
+  }
+
+  if (event.key === "+" || event.key === "=") {
+    event.preventDefault();
+    adjustMargin(MARGIN_STEP);
+    return;
+  }
+
+  if (event.key === "-" || event.key === "_") {
+    event.preventDefault();
+    adjustMargin(-MARGIN_STEP);
   }
 }
 

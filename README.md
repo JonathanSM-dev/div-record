@@ -4,7 +4,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 
 ## Versao atual
 
-- `1.5.1`
+- `1.6.0`
 
 ## Como usar
 
@@ -16,7 +16,8 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 5. Clique no icone da extensao e depois em **Selecionar elemento**.
 6. Passe o mouse pela pagina para destacar o elemento.
 7. Use a roda do mouse ou as setas para subir e descer na hierarquia do container.
-8. Clique no elemento desejado para gerar e baixar o print.
+8. Use `+` e `-` para ajustar a margem sem sair da selecao, se quiser.
+9. Clique no elemento desejado para gerar e baixar o print.
 
 ## Atalho
 
@@ -28,6 +29,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 - Permite navegar na hierarquia do container antes de capturar.
 - Suporta `div`, `section`, `article`, `main`, `button`, `canvas`, `svg`, `img` e outros elementos comuns.
 - Adiciona margem configuravel ao redor da captura.
+- Permite ajustar a margem rapidamente pelo teclado durante a selecao.
 - Permite configurar o prefixo do nome do arquivo.
 - Esconde o destaque visual antes de salvar a imagem.
 - Pode ocultar elementos fixos e sticky durante a captura para evitar interferencia de headers, chats e barras flutuantes.
@@ -47,6 +49,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 ## Limitacao importante
 
 A API padrao de extensoes captura a area visivel da aba, entao a extensao percorre a pagina em multiplos screenshots quando o elemento e maior que a janela. Ainda podem existir diferencas em sites com cabecalhos fixos, animacoes ou conteudo que muda durante a rolagem.
+
 
 
 
