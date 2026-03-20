@@ -1,13 +1,17 @@
 const STORAGE_KEY = "divRecordOptions";
 const DEFAULT_OPTIONS = {
   margin: 8,
-  copyToClipboard: false
+  copyToClipboard: false,
+  filenamePrefix: "div-record",
+  saveAs: true
 };
 
 const startButton = document.getElementById("start-selection");
 const statusElement = document.getElementById("status");
 const marginSelect = document.getElementById("margin");
 const copyCheckbox = document.getElementById("copy-to-clipboard");
+const filenamePrefixInput = document.getElementById("filename-prefix");
+const saveAsCheckbox = document.getElementById("save-as");
 
 function setStatus(message, isError = false) {
   statusElement.textContent = message;
@@ -28,12 +32,16 @@ async function loadOptions() {
 
   marginSelect.value = String(options.margin);
   copyCheckbox.checked = Boolean(options.copyToClipboard);
+  filenamePrefixInput.value = options.filenamePrefix || DEFAULT_OPTIONS.filenamePrefix;
+  saveAsCheckbox.checked = Boolean(options.saveAs);
 }
 
 async function saveOptions() {
   const options = {
     margin: Number(marginSelect.value),
-    copyToClipboard: copyCheckbox.checked
+    copyToClipboard: copyCheckbox.checked,
+    filenamePrefix: (filenamePrefixInput.value || DEFAULT_OPTIONS.filenamePrefix).trim() || DEFAULT_OPTIONS.filenamePrefix,
+    saveAs: saveAsCheckbox.checked
   };
 
   await chrome.storage.local.set({ [STORAGE_KEY]: options });
@@ -45,6 +53,14 @@ marginSelect.addEventListener("change", () => {
 });
 
 copyCheckbox.addEventListener("change", () => {
+  saveOptions().catch(() => {});
+});
+
+filenamePrefixInput.addEventListener("change", () => {
+  saveOptions().catch(() => {});
+});
+
+saveAsCheckbox.addEventListener("change", () => {
   saveOptions().catch(() => {});
 });
 

@@ -5,7 +5,9 @@ async function sendMessageToTab(tabId, message) {
 const STORAGE_KEY = "divRecordOptions";
 const DEFAULT_OPTIONS = {
   margin: 8,
-  copyToClipboard: false
+  copyToClipboard: false,
+  filenamePrefix: "div-record",
+  saveAs: true
 };
 const CAPTURE_MIN_INTERVAL_MS = 450;
 const CAPTURE_RETRY_DELAYS_MS = [800, 1200, 1800, 2500];
@@ -16,11 +18,20 @@ function wait(ms) {
 }
 
 function sanitizeFilename(name) {
-  return name
+  return String(name || "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 60) || "div";
+    .slice(0, 60);
+}
+
+function buildFilename(metrics, options) {
+  const prefix = sanitizeFilename(options.filenamePrefix) || "div-record";
+  const host = sanitizeFilename(metrics.hostname) || "page";
+  const pageTitle = sanitizeFilename(metrics.pageTitle) || "capture";
+  const label = sanitizeFilename(metrics.label) || "element";
+
+  return `${prefix}-${host}-${pageTitle}-${label}-${Date.now()}.png`;
 }
 
 function buildAxisStarts(start, size, viewportSize) {
@@ -219,12 +230,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
 
       const finalDataUrl = await stitchCapture(windowId, tabId, prepared.metrics);
-      const filename = `div-record-${sanitizeFilename(prepared.metrics.label)}-${Date.now()}.png`;
+      const filename = buildFilename(prepared.metrics, {
+        filenamePrefix: message.payload?.filenamePrefix
+      });
 
       await chrome.downloads.download({
         url: finalDataUrl,
         filename,
-        saveAs: true
+        saveAs: Boolean(message.payload?.saveAs)
       });
 
       const clipboardResult = await maybeCopyToClipboard(

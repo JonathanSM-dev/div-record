@@ -28,7 +28,9 @@ const state = {
   captureSession: null,
   captureOptions: {
     margin: 8,
-    copyToClipboard: false
+    copyToClipboard: false,
+    filenamePrefix: "div-record",
+    saveAs: true
   },
   currentPath: [],
   pathIndex: 0,
@@ -262,7 +264,11 @@ function startSelection(options = {}) {
   state.lastPointerTarget = null;
   state.captureOptions = {
     margin: Number.isFinite(options.margin) ? options.margin : 8,
-    copyToClipboard: Boolean(options.copyToClipboard)
+    copyToClipboard: Boolean(options.copyToClipboard),
+    filenamePrefix: typeof options.filenamePrefix === "string" && options.filenamePrefix.trim()
+      ? options.filenamePrefix.trim()
+      : "div-record",
+    saveAs: "saveAs" in options ? Boolean(options.saveAs) : true
   };
 
   showToast("Selecao ativa. Use roda do mouse ou setas para mudar o container.", false, 3200);
@@ -320,7 +326,9 @@ function onClick(event) {
     type: "CAPTURE_ELEMENT",
     payload: {
       selectorLabel: describeElement(element),
-      copyToClipboard: state.captureOptions.copyToClipboard
+      copyToClipboard: state.captureOptions.copyToClipboard,
+      filenamePrefix: state.captureOptions.filenamePrefix,
+      saveAs: state.captureOptions.saveAs
     }
   }, (response) => {
     if (chrome.runtime.lastError) {
@@ -396,7 +404,10 @@ async function prepareCapture() {
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
       devicePixelRatio: window.devicePixelRatio || 1,
-      label: describeElement(element)
+      label: describeElement(element),
+      pageTitle: document.title || "",
+      hostname: window.location.hostname || "",
+      pathname: window.location.pathname || ""
     }
   };
 }

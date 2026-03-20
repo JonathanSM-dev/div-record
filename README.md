@@ -1,10 +1,10 @@
-# DIV Record
+﻿# DIV Record
 
 Extensao de navegador para Chrome/Edge que permite selecionar elementos diretamente na pagina e salvar um print ja recortado, sem precisar editar a imagem depois.
 
 ## Versao atual
 
-- `1.2.0`
+- `1.3.0`
 
 ## Como usar
 
@@ -28,10 +28,12 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 - Permite navegar na hierarquia do container antes de capturar.
 - Suporta `div`, `section`, `article`, `main`, `button`, `canvas`, `svg`, `img` e outros elementos comuns.
 - Adiciona margem configuravel ao redor da captura.
+- Permite configurar o prefixo do nome do arquivo.
 - Esconde o destaque visual antes de salvar a imagem.
 - Captura elementos maiores que a viewport em varias partes e costura o resultado.
 - Mostra progresso quando a captura precisa montar mosaico.
 - Pode copiar a imagem para a area de transferencia.
+- Pode baixar direto sem abrir o seletor de arquivo.
 - Faz o recorte automaticamente e baixa um `.png`.
 
 ## Versionamento e backups
@@ -43,3 +45,4 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 ## Limitacao importante
 
 A API padrao de extensoes captura a area visivel da aba, entao a extensao percorre a pagina em multiplos screenshots quando o elemento e maior que a janela. Ainda podem existir diferencas em sites com cabecalhos fixos, animacoes ou conteudo que muda durante a rolagem.
+

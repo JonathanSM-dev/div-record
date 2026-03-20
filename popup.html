@@ -22,9 +22,19 @@
         </select>
       </label>
 
+      <label class="field" for="filename-prefix">
+        <span class="field-label">Prefixo do arquivo</span>
+        <input id="filename-prefix" type="text" maxlength="40" placeholder="div-record">
+      </label>
+
       <label class="checkbox">
         <input id="copy-to-clipboard" type="checkbox">
         <span>Tambem copiar para a area de transferencia</span>
+      </label>
+
+      <label class="checkbox">
+        <input id="save-as" type="checkbox" checked>
+        <span>Perguntar onde salvar</span>
       </label>
 
       <button id="start-selection" type="button">Selecionar elemento</button>

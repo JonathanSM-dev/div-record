@@ -2,6 +2,12 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.3.0
+
+- Adicionado prefixo configuravel para o nome do arquivo.
+- O nome salvo agora inclui prefixo, hostname, titulo da pagina e elemento capturado.
+- Adicionada opcao para baixar direto sem abrir a janela de salvar.
+
 ## 1.2.0
 
 - Adicionado atalho `Alt+Shift+D` para iniciar a selecao sem abrir o popup.
