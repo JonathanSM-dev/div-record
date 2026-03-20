@@ -1,0 +1,79 @@
+const STORAGE_KEY = "divRecordOptions";
+const DEFAULT_OPTIONS = {
+  margin: 8,
+  copyToClipboard: false
+};
+
+const startButton = document.getElementById("start-selection");
+const statusElement = document.getElementById("status");
+const marginSelect = document.getElementById("margin");
+const copyCheckbox = document.getElementById("copy-to-clipboard");
+
+function setStatus(message, isError = false) {
+  statusElement.textContent = message;
+  statusElement.style.color = isError ? "#b42318" : "#1357d4";
+}
+
+async function getActiveTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab;
+}
+
+async function loadOptions() {
+  const stored = await chrome.storage.local.get(STORAGE_KEY);
+  const options = {
+    ...DEFAULT_OPTIONS,
+    ...(stored[STORAGE_KEY] || {})
+  };
+
+  marginSelect.value = String(options.margin);
+  copyCheckbox.checked = Boolean(options.copyToClipboard);
+}
+
+async function saveOptions() {
+  const options = {
+    margin: Number(marginSelect.value),
+    copyToClipboard: copyCheckbox.checked
+  };
+
+  await chrome.storage.local.set({ [STORAGE_KEY]: options });
+  return options;
+}
+
+marginSelect.addEventListener("change", () => {
+  saveOptions().catch(() => {});
+});
+
+copyCheckbox.addEventListener("change", () => {
+  saveOptions().catch(() => {});
+});
+
+startButton.addEventListener("click", async () => {
+  startButton.disabled = true;
+  setStatus("Ativando selecao na pagina...");
+
+  try {
+    const tab = await getActiveTab();
+
+    if (!tab?.id) {
+      throw new Error("Nao encontrei a aba ativa.");
+    }
+
+    const options = await saveOptions();
+
+    await chrome.tabs.sendMessage(tab.id, {
+      type: "START_SELECTION",
+      payload: options
+    });
+
+    setStatus("Passe o mouse e clique no elemento que deseja capturar.");
+    window.close();
+  } catch (error) {
+    setStatus(error.message || "Nao foi possivel iniciar a selecao.", true);
+    startButton.disabled = false;
+  }
+});
+
+loadOptions().catch(() => {
+  setStatus("Nao foi possivel carregar as opcoes salvas.", true);
+});

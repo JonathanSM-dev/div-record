@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DIV Record</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="popup">
+      <h1>DIV Record</h1>
+      <p>Selecione um elemento da pagina e gere o print ja recortado.</p>
+
+      <label class="field" for="margin">
+        <span class="field-label">Margem extra</span>
+        <select id="margin">
+          <option value="0">0 px</option>
+          <option value="8">8 px</option>
+          <option value="16">16 px</option>
+          <option value="24">24 px</option>
+          <option value="32">32 px</option>
+        </select>
+      </label>
+
+      <label class="checkbox">
+        <input id="copy-to-clipboard" type="checkbox">
+        <span>Tambem copiar para a area de transferencia</span>
+      </label>
+
+      <button id="start-selection" type="button">Selecionar elemento</button>
+
+      <p class="hint">Durante a selecao, use a roda do mouse ou as setas para subir e descer na hierarquia do elemento.</p>
+      <p id="status" class="status" aria-live="polite"></p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
