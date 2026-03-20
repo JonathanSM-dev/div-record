@@ -32,8 +32,11 @@ function buildFilename(metrics, options) {
   const host = sanitizeFilename(metrics.hostname) || "page";
   const pageTitle = sanitizeFilename(metrics.pageTitle) || "capture";
   const label = sanitizeFilename(metrics.label) || "element";
+  const sequence = Number(options.batchSequence) > 0
+    ? `-${String(options.batchSequence).padStart(3, "0")}`
+    : "";
 
-  return `${prefix}-${host}-${pageTitle}-${label}-${Date.now()}.png`;
+  return `${prefix}-${host}-${pageTitle}-${label}${sequence}-${Date.now()}.png`;
 }
 
 function buildAxisStarts(start, size, viewportSize) {
@@ -233,7 +236,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       const finalDataUrl = await stitchCapture(windowId, tabId, prepared.metrics);
       const filename = buildFilename(prepared.metrics, {
-        filenamePrefix: message.payload?.filenamePrefix
+        filenamePrefix: message.payload?.filenamePrefix,
+        batchSequence: message.payload?.batchSequence
       });
 
       await chrome.downloads.download({

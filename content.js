@@ -38,7 +38,8 @@ const state = {
   currentPath: [],
   pathIndex: 0,
   lastPointerTarget: null,
-  captureInProgress: false
+  captureInProgress: false,
+  batchCaptureCount: 0
 };
 
 function ensureOverlay() {
@@ -276,6 +277,7 @@ function startSelection(options = {}) {
   state.currentPath = [];
   state.pathIndex = 0;
   state.lastPointerTarget = null;
+  state.batchCaptureCount = 0;
   state.captureOptions = {
     margin: Number.isFinite(options.margin) ? options.margin : 8,
     copyToClipboard: Boolean(options.copyToClipboard),
@@ -356,7 +358,8 @@ function onClick(event) {
       filenamePrefix: state.captureOptions.filenamePrefix,
       saveAs: state.captureOptions.saveAs,
       hideFloatingUi: state.captureOptions.hideFloatingUi,
-      batchMode: state.captureOptions.batchMode
+      batchMode: state.captureOptions.batchMode,
+      batchSequence: state.captureOptions.batchMode ? state.batchCaptureCount + 1 : 0
     }
   }, (response) => {
     if (chrome.runtime.lastError) {
@@ -611,11 +614,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "CAPTURE_COMPLETE") {
     restoreAfterCapture();
     if (state.captureOptions.batchMode) {
+      state.batchCaptureCount += 1;
       state.selectionActive = true;
       if (message.payload?.copied) {
-        showToast("Print salvo e copiado. Continue selecionando ou pressione Esc para sair.", false, 3200);
+        showToast(`Captura ${state.batchCaptureCount} salva e copiada. Continue selecionando ou pressione Esc para sair.`, false, 3200);
       } else {
-        showToast("Print salvo. Continue selecionando ou pressione Esc para sair.", false, 3200);
+        showToast(`Captura ${state.batchCaptureCount} salva. Continue selecionando ou pressione Esc para sair.`, false, 3200);
       }
     } else {
       if (message.payload?.copied) {

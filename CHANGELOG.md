@@ -2,6 +2,11 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.5.1
+
+- Adicionado contador visual para a sessao de capturas em modo lote.
+- Arquivos de uma mesma sessao em lote agora recebem numeracao automatica.
+
 ## 1.5.0
 
 - Adicionado modo lote para capturar varios elementos em sequencia.
