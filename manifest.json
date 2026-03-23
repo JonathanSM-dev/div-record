@@ -2,7 +2,7 @@
     "manifest_version":  3,
     "name":  "DIV Record",
     "description":  "Seleciona um elemento da pagina e salva um print recortado automaticamente.",
-    "version":  "1.6.0",
+    "version":  "1.7.0",
     "permissions":  [
                         "activeTab",
                         "tabs",

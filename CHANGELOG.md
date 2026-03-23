@@ -2,6 +2,12 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.7.0
+
+- O modo lote agora permite marcar varios elementos primeiro e processar tudo apenas ao pressionar `Esc`.
+- Itens marcados ficam destacados visualmente ate o inicio do processamento do lote.
+- O fluxo foi ajustado para facilitar selecao rapida sem salvar arquivo a cada clique.
+
 ## 1.6.0
 
 - Adicionado ajuste rapido de margem pelo teclado durante a selecao com `+` e `-`.

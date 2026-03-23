@@ -38,11 +38,14 @@ const state = {
     batchMode: false
   },
   hiddenFloatingElements: [],
+  batchSelections: [],
   currentPath: [],
   pathIndex: 0,
   lastPointerTarget: null,
   captureInProgress: false,
-  batchCaptureCount: 0
+  batchCaptureCount: 0,
+  batchProcessing: false,
+  captureTargetElement: null
 };
 
 function ensureOverlay() {
@@ -157,6 +160,44 @@ function isExtensionUiElement(element) {
     state.label === element ||
     state.toast === element
   );
+}
+
+function findBatchSelectionIndex(element) {
+  return state.batchSelections.findIndex((entry) => entry.element === element);
+}
+
+function clearBatchSelectionHighlights() {
+  for (const entry of state.batchSelections) {
+    entry.element.style.outline = entry.outline;
+    entry.element.style.outlineOffset = entry.outlineOffset;
+  }
+}
+
+function resetBatchSelections() {
+  clearBatchSelectionHighlights();
+  state.batchSelections = [];
+  state.batchCaptureCount = 0;
+}
+
+function toggleBatchSelection(element) {
+  const existingIndex = findBatchSelectionIndex(element);
+
+  if (existingIndex >= 0) {
+    const [existing] = state.batchSelections.splice(existingIndex, 1);
+    existing.element.style.outline = existing.outline;
+    existing.element.style.outlineOffset = existing.outlineOffset;
+    return false;
+  }
+
+  state.batchSelections.push({
+    element,
+    outline: element.style.outline,
+    outlineOffset: element.style.outlineOffset
+  });
+
+  element.style.outline = "2px dashed #16a34a";
+  element.style.outlineOffset = "2px";
+  return true;
 }
 
 function isSelectableElement(element) {
@@ -321,7 +362,9 @@ function startSelection(options = {}) {
   state.currentPath = [];
   state.pathIndex = 0;
   state.lastPointerTarget = null;
-  state.batchCaptureCount = 0;
+  state.captureTargetElement = null;
+  state.batchProcessing = false;
+  resetBatchSelections();
   state.captureOptions = {
     margin: Number.isFinite(options.margin) ? options.margin : 8,
     copyToClipboard: Boolean(options.copyToClipboard),
@@ -334,7 +377,7 @@ function startSelection(options = {}) {
   };
 
   const batchHint = state.captureOptions.batchMode
-    ? " Modo lote ativo: clique em varios elementos e pressione Esc para sair."
+    ? " Modo lote ativo: clique para marcar itens e pressione Esc para capturar tudo."
     : "";
   showToast(`Selecao ativa. Use roda do mouse ou setas para mudar o container.${batchHint}`, false, 3800);
 }
@@ -344,6 +387,9 @@ function stopSelection() {
   state.currentPath = [];
   state.pathIndex = 0;
   state.lastPointerTarget = null;
+  state.captureTargetElement = null;
+  state.batchProcessing = false;
+  resetBatchSelections();
   hideOverlay();
 }
 
@@ -389,11 +435,25 @@ function onClick(event) {
     return;
   }
 
+  if (state.captureOptions.batchMode && !state.batchProcessing) {
+    const added = toggleBatchSelection(element);
+    updateOverlay(element);
+    showToast(
+      added
+        ? `Item adicionado ao lote (${state.batchSelections.length}). Pressione Esc para capturar.`
+        : `Item removido do lote (${state.batchSelections.length}).`,
+      false,
+      1800
+    );
+    return;
+  }
+
   state.selectionActive = false;
   state.captureInProgress = true;
   updateOverlay(element);
   clearToast();
 
+  state.captureTargetElement = element;
   chrome.runtime.sendMessage({
     type: "CAPTURE_ELEMENT",
     payload: {
@@ -419,12 +479,93 @@ function onClick(event) {
   });
 }
 
+async function sendCaptureRequest(payload) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({
+      type: "CAPTURE_ELEMENT",
+      payload
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+
+      if (!response?.ok) {
+        reject(new Error(response?.error || "Falha ao capturar o elemento."));
+        return;
+      }
+
+      resolve(response);
+    });
+  });
+}
+
+async function processBatchSelections() {
+  const items = state.batchSelections
+    .map((entry) => entry.element)
+    .filter((element) => document.contains(element));
+
+  if (!items.length) {
+    throw new Error("Nenhum item valido permaneceu no lote.");
+  }
+
+  state.selectionActive = false;
+  state.batchProcessing = true;
+  state.batchCaptureCount = 0;
+  clearToast();
+
+  try {
+    for (let index = 0; index < items.length; index += 1) {
+      const element = items[index];
+
+      state.captureTargetElement = element;
+      state.captureInProgress = true;
+      showToast(`Processando lote ${index + 1}/${items.length}...`, false, 0);
+
+      await sendCaptureRequest({
+        selectorLabel: describeElement(element),
+        copyToClipboard: state.captureOptions.copyToClipboard,
+        filenamePrefix: state.captureOptions.filenamePrefix,
+        saveAs: state.captureOptions.saveAs,
+        hideFloatingUi: state.captureOptions.hideFloatingUi,
+        batchMode: true,
+        batchSequence: index + 1
+      });
+    }
+  } finally {
+    state.batchProcessing = false;
+    state.captureInProgress = false;
+    state.captureTargetElement = null;
+  }
+
+  state.selectionActive = false;
+  resetBatchSelections();
+  hideOverlay();
+  showToast(`Lote concluido com ${items.length} capturas salvas.`, false, 2800);
+}
+
 function onKeyDown(event) {
   if (!state.selectionActive) {
     return;
   }
 
   if (event.key === "Escape") {
+    if (
+      state.captureOptions.batchMode &&
+      !state.captureInProgress &&
+      !state.batchProcessing &&
+      state.batchSelections.length > 0
+    ) {
+      event.preventDefault();
+      processBatchSelections().catch((error) => {
+        restoreAfterCapture();
+        state.batchProcessing = false;
+        state.selectionActive = true;
+        showToast(error.message || "Falha ao processar o lote.", true, 2600);
+      });
+      return;
+    }
+
     stopSelection();
     showToast("Selecao cancelada.");
     return;
@@ -455,7 +596,7 @@ function onKeyDown(event) {
 }
 
 async function prepareCapture() {
-  const element = getCurrentElement();
+  const element = state.captureTargetElement || getCurrentElement();
 
   if (!element || !document.contains(element)) {
     throw new Error("O elemento selecionado nao esta mais disponivel.");
@@ -610,6 +751,7 @@ function restoreAfterCapture() {
   }
 
   state.captureSession = null;
+  state.captureTargetElement = null;
   state.captureInProgress = false;
   hideOverlay();
   setOverlayVisibility(true);
@@ -669,8 +811,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message?.type === "CAPTURE_COMPLETE") {
     restoreAfterCapture();
-    if (state.captureOptions.batchMode) {
+    if (state.batchProcessing) {
       state.batchCaptureCount += 1;
+      sendResponse({ ok: true });
+      return false;
+    }
+
+    if (state.captureOptions.batchMode) {
       state.selectionActive = true;
       if (message.payload?.copied) {
         showToast(`Captura ${state.batchCaptureCount} salva e copiada. Continue selecionando ou pressione Esc para sair.`, false, 3200);
@@ -690,6 +837,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message?.type === "CAPTURE_FAILED") {
     restoreAfterCapture();
+    if (state.batchProcessing) {
+      sendResponse({ ok: true });
+      return false;
+    }
     if (state.captureOptions.batchMode) {
       state.selectionActive = true;
     }
