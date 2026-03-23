@@ -2,6 +2,11 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.8.0
+
+- Adicionado formato configuravel para nomes de arquivo: humano, curto ou detalhado.
+- Melhorada a heuristica para ocultar anuncios, banners, chats, modais e overlays flutuantes durante a captura.
+
 ## 1.7.3
 
 - Adicionado `Ctrl+Z` para desfazer o ultimo item marcado no lote.

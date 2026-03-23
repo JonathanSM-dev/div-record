@@ -34,6 +34,7 @@ const state = {
     margin: 8,
     copyToClipboard: false,
     filenamePrefix: "div-record",
+    filenameStyle: "human",
     saveAs: true,
     hideFloatingUi: true,
     batchMode: false
@@ -276,6 +277,35 @@ function toggleBatchSelection(element) {
   return true;
 }
 
+function isLikelyNoiseElement(element, style) {
+  const marker = `${element.id} ${element.className} ${element.getAttribute("aria-label") || ""} ${element.getAttribute("role") || ""}`.toLowerCase();
+  const keywords = [
+    "ad",
+    "ads",
+    "advert",
+    "banner",
+    "promo",
+    "cookie",
+    "consent",
+    "newsletter",
+    "subscribe",
+    "popup",
+    "modal",
+    "intercom",
+    "chat",
+    "whatsapp",
+    "floating"
+  ];
+
+  const hasKeyword = keywords.some((keyword) => marker.includes(keyword));
+  const zIndex = Number.parseInt(style.zIndex, 10);
+  const highZIndex = Number.isFinite(zIndex) && zIndex >= 20;
+  const rect = element.getBoundingClientRect();
+  const smallOverlay = rect.width >= 120 && rect.height >= 40;
+
+  return hasKeyword || (highZIndex && smallOverlay);
+}
+
 function isSelectableElement(element) {
   if (!(element instanceof Element)) {
     return false;
@@ -447,6 +477,7 @@ function startSelection(options = {}) {
     filenamePrefix: typeof options.filenamePrefix === "string" && options.filenamePrefix.trim()
       ? options.filenamePrefix.trim()
       : "div-record",
+    filenameStyle: typeof options.filenameStyle === "string" ? options.filenameStyle : "human",
     saveAs: "saveAs" in options ? Boolean(options.saveAs) : true,
     hideFloatingUi: "hideFloatingUi" in options ? Boolean(options.hideFloatingUi) : true,
     batchMode: "batchMode" in options ? Boolean(options.batchMode) : false
@@ -538,6 +569,7 @@ function onClick(event) {
       selectorLabel: describeElement(element),
       copyToClipboard: state.captureOptions.copyToClipboard,
       filenamePrefix: state.captureOptions.filenamePrefix,
+      filenameStyle: state.captureOptions.filenameStyle,
       saveAs: state.captureOptions.saveAs,
       hideFloatingUi: state.captureOptions.hideFloatingUi,
       batchMode: state.captureOptions.batchMode,
@@ -606,6 +638,7 @@ async function processBatchSelections() {
         selectorLabel: describeElement(element),
         copyToClipboard: state.captureOptions.copyToClipboard,
         filenamePrefix: state.captureOptions.filenamePrefix,
+        filenameStyle: state.captureOptions.filenameStyle,
         saveAs: state.captureOptions.saveAs,
         hideFloatingUi: state.captureOptions.hideFloatingUi,
         batchMode: true,
@@ -810,7 +843,9 @@ function hideFloatingElements(selectedElement) {
 
     const style = window.getComputedStyle(element);
 
-    if (style.position !== "fixed" && style.position !== "sticky") {
+    const likelyNoise = isLikelyNoiseElement(element, style);
+
+    if (style.position !== "fixed" && style.position !== "sticky" && !likelyNoise) {
       continue;
     }
 

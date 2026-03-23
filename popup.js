@@ -3,6 +3,7 @@ const DEFAULT_OPTIONS = {
   margin: 8,
   copyToClipboard: false,
   filenamePrefix: "div-record",
+  filenameStyle: "human",
   saveAs: true,
   hideFloatingUi: true,
   batchMode: false
@@ -13,6 +14,7 @@ const statusElement = document.getElementById("status");
 const marginSelect = document.getElementById("margin");
 const copyCheckbox = document.getElementById("copy-to-clipboard");
 const filenamePrefixInput = document.getElementById("filename-prefix");
+const filenameStyleSelect = document.getElementById("filename-style");
 const saveAsCheckbox = document.getElementById("save-as");
 const hideFloatingUiCheckbox = document.getElementById("hide-floating-ui");
 const batchModeCheckbox = document.getElementById("batch-mode");
@@ -37,6 +39,7 @@ async function loadOptions() {
   marginSelect.value = String(options.margin);
   copyCheckbox.checked = Boolean(options.copyToClipboard);
   filenamePrefixInput.value = options.filenamePrefix || DEFAULT_OPTIONS.filenamePrefix;
+  filenameStyleSelect.value = options.filenameStyle || DEFAULT_OPTIONS.filenameStyle;
   saveAsCheckbox.checked = Boolean(options.saveAs);
   hideFloatingUiCheckbox.checked = Boolean(options.hideFloatingUi);
   batchModeCheckbox.checked = Boolean(options.batchMode);
@@ -47,6 +50,7 @@ async function saveOptions() {
     margin: Number(marginSelect.value),
     copyToClipboard: copyCheckbox.checked,
     filenamePrefix: (filenamePrefixInput.value || DEFAULT_OPTIONS.filenamePrefix).trim() || DEFAULT_OPTIONS.filenamePrefix,
+    filenameStyle: filenameStyleSelect.value || DEFAULT_OPTIONS.filenameStyle,
     saveAs: saveAsCheckbox.checked,
     hideFloatingUi: hideFloatingUiCheckbox.checked,
     batchMode: batchModeCheckbox.checked
@@ -65,6 +69,10 @@ copyCheckbox.addEventListener("change", () => {
 });
 
 filenamePrefixInput.addEventListener("change", () => {
+  saveOptions().catch(() => {});
+});
+
+filenameStyleSelect.addEventListener("change", () => {
   saveOptions().catch(() => {});
 });
 

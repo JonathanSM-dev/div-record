@@ -7,6 +7,7 @@ const DEFAULT_OPTIONS = {
   margin: 8,
   copyToClipboard: false,
   filenamePrefix: "div-record",
+  filenameStyle: "human",
   saveAs: true,
   hideFloatingUi: true,
   batchMode: false
@@ -27,6 +28,11 @@ function sanitizeFilename(name) {
     .slice(0, 60);
 }
 
+function buildTimestamp() {
+  const iso = new Date().toISOString().replace(/[:.]/g, "-");
+  return iso.slice(0, 19);
+}
+
 function buildFilename(metrics, options) {
   const prefix = sanitizeFilename(options.filenamePrefix) || "div-record";
   const host = sanitizeFilename(metrics.hostname) || "page";
@@ -35,8 +41,18 @@ function buildFilename(metrics, options) {
   const sequence = Number(options.batchSequence) > 0
     ? `-${String(options.batchSequence).padStart(3, "0")}`
     : "";
+  const timestamp = buildTimestamp();
+  const style = options.filenameStyle || "human";
 
-  return `${prefix}-${host}-${pageTitle}-${label}${sequence}-${Date.now()}.png`;
+  if (style === "short") {
+    return `${prefix}${sequence}-${timestamp}.png`;
+  }
+
+  if (style === "detailed") {
+    return `${prefix}-${host}-${pageTitle}-${label}${sequence}-${timestamp}.png`;
+  }
+
+  return `${prefix}-${pageTitle}${sequence}-${timestamp}.png`;
 }
 
 function buildAxisStarts(start, size, viewportSize) {
@@ -237,6 +253,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const finalDataUrl = await stitchCapture(windowId, tabId, prepared.metrics);
       const filename = buildFilename(prepared.metrics, {
         filenamePrefix: message.payload?.filenamePrefix,
+        filenameStyle: message.payload?.filenameStyle,
         batchSequence: message.payload?.batchSequence
       });
 
