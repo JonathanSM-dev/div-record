@@ -2,6 +2,11 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.7.2
+
+- Adicionado contador fixo na tela com a quantidade de itens marcados no lote.
+- O contorno visual dos itens marcados no lote agora e escondido antes da captura para nao sair no print final.
+
 ## 1.7.1
 
 - Os atalhos principais agora aparecem visivelmente no popup da extensao.

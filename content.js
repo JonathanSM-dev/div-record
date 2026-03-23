@@ -26,6 +26,7 @@ const state = {
   selectionActive: false,
   overlay: null,
   label: null,
+  batchBadge: null,
   toast: null,
   toastTimer: null,
   captureSession: null,
@@ -45,7 +46,8 @@ const state = {
   captureInProgress: false,
   batchCaptureCount: 0,
   batchProcessing: false,
-  captureTargetElement: null
+  captureTargetElement: null,
+  batchHighlightsSuspended: false
 };
 
 function ensureOverlay() {
@@ -81,30 +83,53 @@ function ensureOverlay() {
   label.style.boxShadow = "0 6px 14px rgba(0, 0, 0, 0.18)";
   label.textContent = "Selecione um elemento";
 
+  const batchBadge = document.createElement("div");
+  batchBadge.id = "__div_record_batch_badge__";
+  batchBadge.style.position = "fixed";
+  batchBadge.style.right = "16px";
+  batchBadge.style.top = "16px";
+  batchBadge.style.pointerEvents = "none";
+  batchBadge.style.zIndex = "2147483647";
+  batchBadge.style.padding = "8px 10px";
+  batchBadge.style.borderRadius = "999px";
+  batchBadge.style.fontFamily = "Segoe UI, sans-serif";
+  batchBadge.style.fontSize = "12px";
+  batchBadge.style.fontWeight = "700";
+  batchBadge.style.color = "#ffffff";
+  batchBadge.style.background = "#16a34a";
+  batchBadge.style.boxShadow = "0 6px 14px rgba(0, 0, 0, 0.18)";
+  batchBadge.style.opacity = "0";
+  batchBadge.style.display = "none";
+  batchBadge.textContent = "Lote: 0";
+
   document.documentElement.appendChild(overlay);
   document.documentElement.appendChild(label);
+  document.documentElement.appendChild(batchBadge);
 
   state.overlay = overlay;
   state.label = label;
+  state.batchBadge = batchBadge;
 }
 
 function hideOverlay() {
-  if (!state.overlay || !state.label) {
+  if (!state.overlay || !state.label || !state.batchBadge) {
     return;
   }
 
   state.overlay.style.width = "0";
   state.overlay.style.height = "0";
   state.label.style.opacity = "0";
+  state.batchBadge.style.opacity = "0";
 }
 
 function setOverlayVisibility(visible) {
-  if (!state.overlay || !state.label) {
+  if (!state.overlay || !state.label || !state.batchBadge) {
     return;
   }
 
   state.overlay.style.display = visible ? "block" : "none";
   state.label.style.display = visible ? "block" : "none";
+  state.batchBadge.style.display = visible ? "block" : "none";
 }
 
 function clearToast() {
@@ -155,9 +180,11 @@ function describeElement(element) {
 function isExtensionUiElement(element) {
   return Boolean(
     element?.id === "__div_record_overlay__" ||
+    element?.id === "__div_record_batch_badge__" ||
     element?.id === "__div_record_toast__" ||
     state.overlay === element ||
     state.label === element ||
+    state.batchBadge === element ||
     state.toast === element
   );
 }
@@ -173,10 +200,57 @@ function clearBatchSelectionHighlights() {
   }
 }
 
+function suspendBatchSelectionHighlights() {
+  if (state.batchHighlightsSuspended) {
+    return;
+  }
+
+  for (const entry of state.batchSelections) {
+    entry.element.style.outline = entry.outline;
+    entry.element.style.outlineOffset = entry.outlineOffset;
+  }
+
+  state.batchHighlightsSuspended = true;
+}
+
+function resumeBatchSelectionHighlights() {
+  if (!state.batchHighlightsSuspended) {
+    return;
+  }
+
+  for (const entry of state.batchSelections) {
+    entry.element.style.outline = "2px dashed #16a34a";
+    entry.element.style.outlineOffset = "2px";
+  }
+
+  state.batchHighlightsSuspended = false;
+}
+
+function updateBatchBadge() {
+  if (!state.batchBadge) {
+    return;
+  }
+
+  const shouldShow = state.selectionActive && state.captureOptions.batchMode;
+  state.batchBadge.style.display = shouldShow ? "block" : "none";
+  state.batchBadge.style.opacity = shouldShow ? "1" : "0";
+
+  if (!shouldShow) {
+    return;
+  }
+
+  const selectedCount = state.batchSelections.length;
+  const processingPrefix = state.batchProcessing ? "Processando" : "Lote";
+  state.batchBadge.textContent = `${processingPrefix}: ${selectedCount}`;
+  state.batchBadge.style.background = selectedCount > 0 ? "#16a34a" : "#475467";
+}
+
 function resetBatchSelections() {
   clearBatchSelectionHighlights();
   state.batchSelections = [];
   state.batchCaptureCount = 0;
+  state.batchHighlightsSuspended = false;
+  updateBatchBadge();
 }
 
 function toggleBatchSelection(element) {
@@ -186,6 +260,7 @@ function toggleBatchSelection(element) {
     const [existing] = state.batchSelections.splice(existingIndex, 1);
     existing.element.style.outline = existing.outline;
     existing.element.style.outlineOffset = existing.outlineOffset;
+    updateBatchBadge();
     return false;
   }
 
@@ -197,6 +272,7 @@ function toggleBatchSelection(element) {
 
   element.style.outline = "2px dashed #16a34a";
   element.style.outlineOffset = "2px";
+  updateBatchBadge();
   return true;
 }
 
@@ -375,6 +451,7 @@ function startSelection(options = {}) {
     hideFloatingUi: "hideFloatingUi" in options ? Boolean(options.hideFloatingUi) : true,
     batchMode: "batchMode" in options ? Boolean(options.batchMode) : false
   };
+  updateBatchBadge();
 
   const batchHint = state.captureOptions.batchMode
     ? " Modo lote ativo: clique para marcar itens e pressione Esc para capturar tudo."
@@ -391,6 +468,7 @@ function stopSelection() {
   state.batchProcessing = false;
   resetBatchSelections();
   hideOverlay();
+  updateBatchBadge();
 }
 
 function onMouseMove(event) {
@@ -512,6 +590,8 @@ async function processBatchSelections() {
   state.selectionActive = false;
   state.batchProcessing = true;
   state.batchCaptureCount = 0;
+  updateBatchBadge();
+  suspendBatchSelectionHighlights();
   clearToast();
 
   try {
@@ -536,6 +616,7 @@ async function processBatchSelections() {
     state.batchProcessing = false;
     state.captureInProgress = false;
     state.captureTargetElement = null;
+    updateBatchBadge();
   }
 
   state.selectionActive = false;
@@ -634,6 +715,7 @@ async function prepareCapture() {
 
   clearToast();
   setOverlayVisibility(false);
+  suspendBatchSelectionHighlights();
   hideFloatingElements(element);
 
   const rect = element.getBoundingClientRect();
@@ -780,6 +862,12 @@ function restoreAfterCapture() {
   state.captureInProgress = false;
   hideOverlay();
   setOverlayVisibility(true);
+
+  if (state.selectionActive && state.captureOptions.batchMode) {
+    resumeBatchSelectionHighlights();
+  }
+
+  updateBatchBadge();
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
