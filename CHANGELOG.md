@@ -2,6 +2,11 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.7.3
+
+- Adicionado `Ctrl+Z` para desfazer o ultimo item marcado no lote.
+- O atalho de desfazer agora aparece visivelmente no popup da extensao.
+
 ## 1.7.2
 
 - Adicionado contador fixo na tela com a quantidade de itens marcados no lote.

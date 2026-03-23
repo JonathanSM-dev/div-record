@@ -635,6 +635,19 @@ function clearBatchSelectionsWithFeedback() {
   showToast("Lote limpo.", false, 1400);
 }
 
+function undoLastBatchSelection() {
+  if (!state.batchSelections.length) {
+    showToast("Nao ha itens no lote para desfazer.", false, 1400);
+    return;
+  }
+
+  const lastEntry = state.batchSelections.pop();
+  lastEntry.element.style.outline = lastEntry.outline;
+  lastEntry.element.style.outlineOffset = lastEntry.outlineOffset;
+  updateBatchBadge();
+  showToast(`Ultimo item removido do lote (${state.batchSelections.length}).`, false, 1400);
+}
+
 function onKeyDown(event) {
   if (!state.selectionActive) {
     return;
@@ -674,6 +687,18 @@ function onKeyDown(event) {
   ) {
     event.preventDefault();
     clearBatchSelectionsWithFeedback();
+    return;
+  }
+
+  if (
+    state.captureOptions.batchMode &&
+    !state.captureInProgress &&
+    !state.batchProcessing &&
+    event.key.toLowerCase() === "z" &&
+    (event.ctrlKey || event.metaKey)
+  ) {
+    event.preventDefault();
+    undoLastBatchSelection();
     return;
   }
 
