@@ -7,7 +7,8 @@ const DEFAULT_OPTIONS = {
   saveAs: true,
   previewBeforeSave: false,
   hideFloatingUi: true,
-  batchMode: false
+  batchMode: false,
+  exportBatchZip: false
 };
 
 const startButton = document.getElementById("start-selection");
@@ -20,6 +21,16 @@ const saveAsCheckbox = document.getElementById("save-as");
 const previewBeforeSaveCheckbox = document.getElementById("preview-before-save");
 const hideFloatingUiCheckbox = document.getElementById("hide-floating-ui");
 const batchModeCheckbox = document.getElementById("batch-mode");
+const exportBatchZipCheckbox = document.getElementById("export-batch-zip");
+
+function syncBatchExportAvailability() {
+  const batchEnabled = batchModeCheckbox.checked;
+  exportBatchZipCheckbox.disabled = !batchEnabled;
+
+  if (!batchEnabled) {
+    exportBatchZipCheckbox.checked = false;
+  }
+}
 
 function setStatus(message, isError = false) {
   statusElement.textContent = message;
@@ -46,6 +57,8 @@ async function loadOptions() {
   previewBeforeSaveCheckbox.checked = Boolean(options.previewBeforeSave);
   hideFloatingUiCheckbox.checked = Boolean(options.hideFloatingUi);
   batchModeCheckbox.checked = Boolean(options.batchMode);
+  exportBatchZipCheckbox.checked = Boolean(options.exportBatchZip);
+  syncBatchExportAvailability();
 }
 
 async function saveOptions() {
@@ -57,7 +70,8 @@ async function saveOptions() {
     saveAs: saveAsCheckbox.checked,
     previewBeforeSave: previewBeforeSaveCheckbox.checked,
     hideFloatingUi: hideFloatingUiCheckbox.checked,
-    batchMode: batchModeCheckbox.checked
+    batchMode: batchModeCheckbox.checked,
+    exportBatchZip: exportBatchZipCheckbox.checked
   };
 
   await chrome.storage.local.set({ [STORAGE_KEY]: options });
@@ -93,6 +107,11 @@ hideFloatingUiCheckbox.addEventListener("change", () => {
 });
 
 batchModeCheckbox.addEventListener("change", () => {
+  syncBatchExportAvailability();
+  saveOptions().catch(() => {});
+});
+
+exportBatchZipCheckbox.addEventListener("change", () => {
   saveOptions().catch(() => {});
 });
 

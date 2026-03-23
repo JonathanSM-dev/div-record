@@ -4,7 +4,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 
 ## Versao atual
 
-- `1.10.0`
+- `1.11.0`
 
 ## Como usar
 
@@ -34,11 +34,13 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 - Permite configurar o prefixo do nome do arquivo.
 - Permite escolher um formato de nome mais humano, curto ou detalhado.
 - Pode abrir uma previa antes do download nas capturas fora do modo lote.
+- Pode exportar um lote inteiro como um unico arquivo `.zip`.
 - Esconde o destaque visual antes de salvar a imagem.
 - Pode ocultar elementos fixos, sticky e varios overlays/anuncios flutuantes durante a captura para evitar interferencias.
 - Captura elementos maiores que a viewport em varias partes e costura o resultado.
 - Mostra progresso quando a captura precisa montar mosaico.
 - Pode trabalhar em modo lote, marcando varios elementos primeiro e capturando tudo ao pressionar `Esc`, com contador de sessao e nomes numerados automaticamente.
+- Pode empacotar todas as capturas do lote em um unico `.zip` ao final do processamento.
 - Mostra um contador fixo na tela com a quantidade de itens marcados no lote.
 - Remove temporariamente o contorno visual dos itens do lote antes da captura para que ele nao apareca no print.
 - Permite desfazer o ultimo item marcado no lote com `Ctrl+Z`.

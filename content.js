@@ -38,7 +38,8 @@ const state = {
     saveAs: true,
     previewBeforeSave: false,
     hideFloatingUi: true,
-    batchMode: false
+    batchMode: false,
+    exportBatchZip: false
   },
   hiddenFloatingElements: [],
   batchSelections: [],
@@ -49,7 +50,8 @@ const state = {
   batchCaptureCount: 0,
   batchProcessing: false,
   captureTargetElement: null,
-  batchHighlightsSuspended: false
+  batchHighlightsSuspended: false,
+  batchSessionId: null
 };
 
 function ensureOverlay() {
@@ -471,6 +473,7 @@ function startSelection(options = {}) {
   state.lastPointerTarget = null;
   state.captureTargetElement = null;
   state.batchProcessing = false;
+  state.batchSessionId = null;
   resetBatchSelections();
   state.captureOptions = {
     margin: Number.isFinite(options.margin) ? options.margin : 8,
@@ -482,7 +485,8 @@ function startSelection(options = {}) {
     saveAs: "saveAs" in options ? Boolean(options.saveAs) : true,
     previewBeforeSave: "previewBeforeSave" in options ? Boolean(options.previewBeforeSave) : false,
     hideFloatingUi: "hideFloatingUi" in options ? Boolean(options.hideFloatingUi) : true,
-    batchMode: "batchMode" in options ? Boolean(options.batchMode) : false
+    batchMode: "batchMode" in options ? Boolean(options.batchMode) : false,
+    exportBatchZip: "exportBatchZip" in options ? Boolean(options.exportBatchZip) : false
   };
   updateBatchBadge();
 
@@ -499,6 +503,7 @@ function stopSelection() {
   state.lastPointerTarget = null;
   state.captureTargetElement = null;
   state.batchProcessing = false;
+  state.batchSessionId = null;
   resetBatchSelections();
   hideOverlay();
   updateBatchBadge();
@@ -576,6 +581,7 @@ function onClick(event) {
       previewBeforeSave: state.captureOptions.previewBeforeSave,
       hideFloatingUi: state.captureOptions.hideFloatingUi,
       batchMode: state.captureOptions.batchMode,
+      exportBatchZip: false,
       batchSequence: state.captureOptions.batchMode ? state.batchCaptureCount + 1 : 0
     }
   }, (response) => {
@@ -625,6 +631,9 @@ async function processBatchSelections() {
   state.selectionActive = false;
   state.batchProcessing = true;
   state.batchCaptureCount = 0;
+  state.batchSessionId = state.captureOptions.exportBatchZip
+    ? (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`)
+    : null;
   updateBatchBadge();
   suspendBatchSelectionHighlights();
   clearToast();
@@ -646,20 +655,54 @@ async function processBatchSelections() {
         previewBeforeSave: false,
         hideFloatingUi: state.captureOptions.hideFloatingUi,
         batchMode: true,
+        exportBatchZip: state.captureOptions.exportBatchZip,
+        batchSessionId: state.batchSessionId,
         batchSequence: index + 1
+      });
+    }
+
+    if (state.captureOptions.exportBatchZip) {
+      showToast(`Empacotando ZIP do lote (${items.length} capturas)...`, false, 0);
+
+      await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          type: "FINALIZE_BATCH_EXPORT",
+          payload: {
+            batchSessionId: state.batchSessionId,
+            filenamePrefix: state.captureOptions.filenamePrefix,
+            saveAs: state.captureOptions.saveAs
+          }
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+
+          if (!response?.ok) {
+            reject(new Error(response?.error || "Falha ao gerar o ZIP do lote."));
+            return;
+          }
+
+          resolve(response);
+        });
       });
     }
   } finally {
     state.batchProcessing = false;
     state.captureInProgress = false;
     state.captureTargetElement = null;
+    state.batchSessionId = null;
     updateBatchBadge();
   }
 
   state.selectionActive = false;
   resetBatchSelections();
   hideOverlay();
-  showToast(`Lote concluido com ${items.length} capturas salvas.`, false, 2800);
+  if (state.captureOptions.exportBatchZip) {
+    showToast(`Lote exportado em ZIP com ${items.length} capturas.`, false, 3200);
+  } else {
+    showToast(`Lote concluido com ${items.length} capturas salvas.`, false, 2800);
+  }
 }
 
 function clearBatchSelectionsWithFeedback() {

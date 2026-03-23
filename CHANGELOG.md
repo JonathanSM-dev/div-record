@@ -2,6 +2,11 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.11.0
+
+- Adicionada opcao para exportar capturas do modo lote em um unico arquivo `.zip`.
+- O popup agora so permite ativar exportacao em ZIP quando o modo lote estiver ligado.
+
 ## 1.10.0
 
 - Adicionada previa opcional antes do download para capturas individuais.
