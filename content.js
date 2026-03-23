@@ -36,6 +36,7 @@ const state = {
     filenamePrefix: "div-record",
     filenameStyle: "human",
     saveAs: true,
+    previewBeforeSave: false,
     hideFloatingUi: true,
     batchMode: false
   },
@@ -479,6 +480,7 @@ function startSelection(options = {}) {
       : "div-record",
     filenameStyle: typeof options.filenameStyle === "string" ? options.filenameStyle : "human",
     saveAs: "saveAs" in options ? Boolean(options.saveAs) : true,
+    previewBeforeSave: "previewBeforeSave" in options ? Boolean(options.previewBeforeSave) : false,
     hideFloatingUi: "hideFloatingUi" in options ? Boolean(options.hideFloatingUi) : true,
     batchMode: "batchMode" in options ? Boolean(options.batchMode) : false
   };
@@ -571,6 +573,7 @@ function onClick(event) {
       filenamePrefix: state.captureOptions.filenamePrefix,
       filenameStyle: state.captureOptions.filenameStyle,
       saveAs: state.captureOptions.saveAs,
+      previewBeforeSave: state.captureOptions.previewBeforeSave,
       hideFloatingUi: state.captureOptions.hideFloatingUi,
       batchMode: state.captureOptions.batchMode,
       batchSequence: state.captureOptions.batchMode ? state.batchCaptureCount + 1 : 0
@@ -640,6 +643,7 @@ async function processBatchSelections() {
         filenamePrefix: state.captureOptions.filenamePrefix,
         filenameStyle: state.captureOptions.filenameStyle,
         saveAs: state.captureOptions.saveAs,
+        previewBeforeSave: false,
         hideFloatingUi: state.captureOptions.hideFloatingUi,
         batchMode: true,
         batchSequence: index + 1
@@ -992,13 +996,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     if (state.captureOptions.batchMode) {
       state.selectionActive = true;
+      if (message.payload?.previewOpened) {
+        showToast(`Captura ${state.batchCaptureCount} enviada para a previa. Continue selecionando ou pressione Esc para sair.`, false, 3200);
+      } else
       if (message.payload?.copied) {
         showToast(`Captura ${state.batchCaptureCount} salva e copiada. Continue selecionando ou pressione Esc para sair.`, false, 3200);
       } else {
         showToast(`Captura ${state.batchCaptureCount} salva. Continue selecionando ou pressione Esc para sair.`, false, 3200);
       }
     } else {
-      if (message.payload?.copied) {
+      if (message.payload?.previewOpened) {
+        showToast("Previa aberta em uma nova aba.");
+      } else if (message.payload?.copied) {
         showToast("Print salvo e copiado para a area de transferencia.");
       } else {
         showToast("Print salvo com sucesso.");

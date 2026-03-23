@@ -3,12 +3,14 @@ async function sendMessageToTab(tabId, message) {
 }
 
 const STORAGE_KEY = "divRecordOptions";
+const PREVIEW_KEY_PREFIX = "previewCapture:";
 const DEFAULT_OPTIONS = {
   margin: 8,
   copyToClipboard: false,
   filenamePrefix: "div-record",
   filenameStyle: "human",
   saveAs: true,
+  previewBeforeSave: false,
   hideFloatingUi: true,
   batchMode: false
 };
@@ -226,6 +228,24 @@ async function maybeCopyToClipboard(tabId, dataUrl, shouldCopy) {
   }
 }
 
+async function openPreview(finalDataUrl, filename, options) {
+  const previewId = crypto.randomUUID();
+  const previewKey = `${PREVIEW_KEY_PREFIX}${previewId}`;
+
+  await chrome.storage.session.set({
+    [previewKey]: {
+      imageDataUrl: finalDataUrl,
+      filename,
+      saveAs: Boolean(options.saveAs),
+      createdAt: Date.now()
+    }
+  });
+
+  const previewUrl = chrome.runtime.getURL(`preview.html?previewId=${encodeURIComponent(previewId)}`);
+  await chrome.tabs.create({ url: previewUrl });
+  return previewId;
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type !== "CAPTURE_ELEMENT") {
     return false;
@@ -256,28 +276,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         filenameStyle: message.payload?.filenameStyle,
         batchSequence: message.payload?.batchSequence
       });
+      const usePreview = Boolean(message.payload?.previewBeforeSave) && !Boolean(message.payload?.batchMode);
+      let clipboardResult = { copied: false };
 
-      await chrome.downloads.download({
-        url: finalDataUrl,
-        filename,
-        saveAs: Boolean(message.payload?.saveAs)
-      });
+      if (usePreview) {
+        await openPreview(finalDataUrl, filename, {
+          saveAs: message.payload?.saveAs
+        });
+      } else {
+        await chrome.downloads.download({
+          url: finalDataUrl,
+          filename,
+          saveAs: Boolean(message.payload?.saveAs)
+        });
 
-      const clipboardResult = await maybeCopyToClipboard(
-        tabId,
-        finalDataUrl,
-        Boolean(message.payload?.copyToClipboard)
-      );
+        clipboardResult = await maybeCopyToClipboard(
+          tabId,
+          finalDataUrl,
+          Boolean(message.payload?.copyToClipboard)
+        );
+      }
 
       await sendMessageToTab(tabId, {
         type: "CAPTURE_COMPLETE",
-        payload: clipboardResult
+        payload: {
+          ...clipboardResult,
+          previewOpened: usePreview
+        }
       });
 
       sendResponse({
         ok: true,
         filename,
-        copiedToClipboard: clipboardResult.copied
+        copiedToClipboard: clipboardResult.copied,
+        previewOpened: usePreview
       });
     } catch (error) {
       await sendMessageToTab(tabId, {

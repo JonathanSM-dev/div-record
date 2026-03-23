@@ -5,6 +5,7 @@ const DEFAULT_OPTIONS = {
   filenamePrefix: "div-record",
   filenameStyle: "human",
   saveAs: true,
+  previewBeforeSave: false,
   hideFloatingUi: true,
   batchMode: false
 };
@@ -16,6 +17,7 @@ const copyCheckbox = document.getElementById("copy-to-clipboard");
 const filenamePrefixInput = document.getElementById("filename-prefix");
 const filenameStyleSelect = document.getElementById("filename-style");
 const saveAsCheckbox = document.getElementById("save-as");
+const previewBeforeSaveCheckbox = document.getElementById("preview-before-save");
 const hideFloatingUiCheckbox = document.getElementById("hide-floating-ui");
 const batchModeCheckbox = document.getElementById("batch-mode");
 
@@ -41,6 +43,7 @@ async function loadOptions() {
   filenamePrefixInput.value = options.filenamePrefix || DEFAULT_OPTIONS.filenamePrefix;
   filenameStyleSelect.value = options.filenameStyle || DEFAULT_OPTIONS.filenameStyle;
   saveAsCheckbox.checked = Boolean(options.saveAs);
+  previewBeforeSaveCheckbox.checked = Boolean(options.previewBeforeSave);
   hideFloatingUiCheckbox.checked = Boolean(options.hideFloatingUi);
   batchModeCheckbox.checked = Boolean(options.batchMode);
 }
@@ -52,6 +55,7 @@ async function saveOptions() {
     filenamePrefix: (filenamePrefixInput.value || DEFAULT_OPTIONS.filenamePrefix).trim() || DEFAULT_OPTIONS.filenamePrefix,
     filenameStyle: filenameStyleSelect.value || DEFAULT_OPTIONS.filenameStyle,
     saveAs: saveAsCheckbox.checked,
+    previewBeforeSave: previewBeforeSaveCheckbox.checked,
     hideFloatingUi: hideFloatingUiCheckbox.checked,
     batchMode: batchModeCheckbox.checked
   };
@@ -77,6 +81,10 @@ filenameStyleSelect.addEventListener("change", () => {
 });
 
 saveAsCheckbox.addEventListener("change", () => {
+  saveOptions().catch(() => {});
+});
+
+previewBeforeSaveCheckbox.addEventListener("change", () => {
   saveOptions().catch(() => {});
 });
 

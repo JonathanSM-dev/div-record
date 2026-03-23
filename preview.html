@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Preview - DIV Record</title>
+    <link rel="stylesheet" href="preview.css">
+  </head>
+  <body>
+    <main class="preview-layout">
+      <header class="preview-header">
+        <div>
+          <p class="eyebrow">DIV Record</p>
+          <h1>Previa da captura</h1>
+          <p id="filename" class="filename"></p>
+        </div>
+        <div class="actions">
+          <button id="download" type="button">Baixar</button>
+          <button id="copy" class="secondary" type="button">Copiar</button>
+          <button id="close" class="secondary" type="button">Fechar</button>
+        </div>
+      </header>
+      <section class="preview-stage">
+        <img id="preview-image" alt="Previa da captura">
+      </section>
+      <p id="status" class="status" aria-live="polite"></p>
+    </main>
+    <script src="preview.js"></script>
+  </body>
+</html>

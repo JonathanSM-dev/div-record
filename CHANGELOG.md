@@ -2,6 +2,11 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.10.0
+
+- Adicionada previa opcional antes do download para capturas individuais.
+- A previa abre em uma pagina da extensao e permite baixar, copiar ou fechar.
+
 ## 1.8.0
 
 - Adicionado formato configuravel para nomes de arquivo: humano, curto ou detalhado.

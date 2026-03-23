@@ -4,7 +4,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 
 ## Versao atual
 
-- `1.8.0`
+- `1.10.0`
 
 ## Como usar
 
@@ -33,6 +33,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 - Permite ajustar a margem rapidamente pelo teclado durante a selecao.
 - Permite configurar o prefixo do nome do arquivo.
 - Permite escolher um formato de nome mais humano, curto ou detalhado.
+- Pode abrir uma previa antes do download nas capturas fora do modo lote.
 - Esconde o destaque visual antes de salvar a imagem.
 - Pode ocultar elementos fixos, sticky e varios overlays/anuncios flutuantes durante a captura para evitar interferencias.
 - Captura elementos maiores que a viewport em varias partes e costura o resultado.
@@ -55,6 +56,8 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 ## Limitacao importante
 
 A API padrao de extensoes captura a area visivel da aba, entao a extensao percorre a pagina em multiplos screenshots quando o elemento e maior que a janela. Ainda podem existir diferencas em sites com cabecalhos fixos, animacoes ou conteudo que muda durante a rolagem.
+
+
 
 
 
