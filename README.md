@@ -4,7 +4,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 
 ## Versao atual
 
-- `1.7.0`
+- `1.7.1`
 
 ## Como usar
 
@@ -22,6 +22,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 ## Atalho
 
 - `Alt+Shift+D` inicia a selecao diretamente na aba ativa.
+- O popup agora mostra os principais atalhos de selecao e lote.
 
 ## O que a extensao faz
 
@@ -36,6 +37,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 - Captura elementos maiores que a viewport em varias partes e costura o resultado.
 - Mostra progresso quando a captura precisa montar mosaico.
 - Pode trabalhar em modo lote, marcando varios elementos primeiro e capturando tudo ao pressionar `Esc`, com contador de sessao e nomes numerados automaticamente.
+- Mostra no menu os atalhos principais para selecao, lote e ajuste de margem.
 - Pode copiar a imagem para a area de transferencia.
 - Pode baixar direto sem abrir o seletor de arquivo.
 - Faz o recorte automaticamente e baixa um `.png`.
@@ -49,6 +51,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 ## Limitacao importante
 
 A API padrao de extensoes captura a area visivel da aba, entao a extensao percorre a pagina em multiplos screenshots quando o elemento e maior que a janela. Ainda podem existir diferencas em sites com cabecalhos fixos, animacoes ou conteudo que muda durante a rolagem.
+
 
 
 

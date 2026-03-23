@@ -2,6 +2,12 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.7.1
+
+- Os atalhos principais agora aparecem visivelmente no popup da extensao.
+- Adicionado `Enter` para processar o lote marcado.
+- Adicionado `Backspace/Delete` para limpar rapidamente o lote marcado.
+
 ## 1.7.0
 
 - O modo lote agora permite marcar varios elementos primeiro e processar tudo apenas ao pressionar `Esc`.

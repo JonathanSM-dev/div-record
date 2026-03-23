@@ -544,12 +544,22 @@ async function processBatchSelections() {
   showToast(`Lote concluido com ${items.length} capturas salvas.`, false, 2800);
 }
 
+function clearBatchSelectionsWithFeedback() {
+  if (!state.batchSelections.length) {
+    showToast("O lote ja esta vazio.", false, 1400);
+    return;
+  }
+
+  resetBatchSelections();
+  showToast("Lote limpo.", false, 1400);
+}
+
 function onKeyDown(event) {
   if (!state.selectionActive) {
     return;
   }
 
-  if (event.key === "Escape") {
+  if (event.key === "Escape" || event.key === "Enter") {
     if (
       state.captureOptions.batchMode &&
       !state.captureInProgress &&
@@ -566,8 +576,23 @@ function onKeyDown(event) {
       return;
     }
 
+    if (event.key === "Enter") {
+      return;
+    }
+
     stopSelection();
     showToast("Selecao cancelada.");
+    return;
+  }
+
+  if (
+    state.captureOptions.batchMode &&
+    !state.captureInProgress &&
+    !state.batchProcessing &&
+    (event.key === "Backspace" || event.key === "Delete")
+  ) {
+    event.preventDefault();
+    clearBatchSelectionsWithFeedback();
     return;
   }
 
