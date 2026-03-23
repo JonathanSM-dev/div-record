@@ -2,6 +2,11 @@
 
 Este arquivo registra apenas versoes relevantes do projeto e deve permanecer em ordem decrescente.
 
+## 1.11.1
+
+- Corrigido o download do ZIP do lote para ambientes em que `URL.createObjectURL` nao esta disponivel no service worker.
+- Adicionado atalho `Q` para cancelar a selecao a qualquer momento, com visibilidade no popup.
+
 ## 1.11.0
 
 - Adicionada opcao para exportar capturas do modo lote em um unico arquivo `.zip`.

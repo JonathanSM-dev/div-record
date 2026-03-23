@@ -278,6 +278,16 @@ async function dataUrlToBytes(dataUrl) {
   return new Uint8Array(buffer);
 }
 
+async function blobToDataUrl(blob) {
+  const reader = new FileReader();
+
+  return new Promise((resolve, reject) => {
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Falha ao converter o ZIP para download."));
+    reader.readAsDataURL(blob);
+  });
+}
+
 function writeUint16(view, offset, value) {
   view.setUint16(offset, value, true);
 }
@@ -372,7 +382,7 @@ async function finalizeBatchExport(batchSessionId, options) {
 
   const zipBytes = createZipBytes(files);
   const zipBlob = new Blob([zipBytes], { type: "application/zip" });
-  const zipUrl = URL.createObjectURL(zipBlob);
+  const zipUrl = await blobToDataUrl(zipBlob);
   const zipFilename = buildBatchZipFilename(options.filenamePrefix || batch.filenamePrefix);
 
   try {
@@ -383,7 +393,6 @@ async function finalizeBatchExport(batchSessionId, options) {
     });
   } finally {
     batchExports.delete(batchSessionId);
-    setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
   }
 
   return { ok: true, filename: zipFilename };

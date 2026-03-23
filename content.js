@@ -509,6 +509,11 @@ function stopSelection() {
   updateBatchBadge();
 }
 
+function cancelSelection() {
+  stopSelection();
+  showToast("Selecao cancelada.");
+}
+
 function onMouseMove(event) {
   if (!state.selectionActive) {
     return;
@@ -733,6 +738,12 @@ function onKeyDown(event) {
     return;
   }
 
+  if (event.key.toLowerCase() === "q" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    event.preventDefault();
+    cancelSelection();
+    return;
+  }
+
   if (event.key === "Escape" || event.key === "Enter") {
     if (
       state.captureOptions.batchMode &&
@@ -754,8 +765,7 @@ function onKeyDown(event) {
       return;
     }
 
-    stopSelection();
-    showToast("Selecao cancelada.");
+    cancelSelection();
     return;
   }
 

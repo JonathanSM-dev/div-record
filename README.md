@@ -4,7 +4,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 
 ## Versao atual
 
-- `1.11.0`
+- `1.11.1`
 
 ## Como usar
 
@@ -22,6 +22,7 @@ Extensao de navegador para Chrome/Edge que permite selecionar elementos diretame
 ## Atalho
 
 - `Alt+Shift+D` inicia a selecao diretamente na aba ativa.
+- `Q` cancela a selecao atual sem depender do comportamento do `Esc` no modo lote.
 - O popup agora mostra os principais atalhos de selecao e lote.
 
 ## O que a extensao faz
